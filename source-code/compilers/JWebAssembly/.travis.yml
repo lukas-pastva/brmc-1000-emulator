@@ -1,0 +1,17 @@
+language: java
+
+jdk:
+  - openjdk8
+
+deploy:
+  # deploy to Github
+  provider: releases
+  api_key:
+    secure: kdYGXbUNskdjLSPBRRnlpdNa1l6nFfTkjU92Wj0ihOaF1bQ5tzxc2oxRnFolDbL7OhlmbX12L1qx5cdXj4imLqNVz9raMPJgl1NwgjC6eFmYit1ZeUr4InX9jJSrRkbb4aX3p49Phz9OIYvT9cW1YaGbgwunwlBYyO7lVSAiFNENwr2doz9PL+jOjjBNVLHOwn4OewsOrq9IhIdrrWnCgMwjThRqLzG5mX59lUnqVKXjv4uPmiNOdWt0i3paa7xk3lw8VUsNzvhvBSR5xRYcmSqy1A+mC8T37SdMCrqr26W34l/B3MpOSXyhjC97CwWZbOxCu/CKdb28NJxAFTcuTQqfY/tdXl/KoaVbLOM1yk1s1mdrP3Edh3FRq/ALeMKW789wZNzXj3505ESzMVaZIojkVR4ATC8k/r6ly4sP9+7oYVuRTgtxmeU3/p9/l6ZXAYdqRRF/8cItPvriOcZ9JgSLV3bQsPC+S8V5SwPJDrvaNwAZBz9xiWdAM0X5FkC4gwqhwm5A5ioX9yD6H0t6Woq/gS06Q8x2Xfsat25a/ie1yLHpMXq+yXI1ksS5UCgGk6QhrkGsNYE/rXmmuDPKR0V7JYrsjrGEQWj0Tt8Xl3UrXJiqMTXfJ5D2/n/7cdaVXlIIe4mRRQCfk+/wIFbyGazBZyNfs7pG0f0KsWRjJ/g=
+  file_glob: true
+  file: "./build/libs/jwebassembly-compiler-*.jar"
+  skip_cleanup: true
+  overwrite: true
+  on:
+    repo: i-net-software/JWebAssembly
+    tags: true

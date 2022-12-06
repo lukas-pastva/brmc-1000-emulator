@@ -1,0 +1,173 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
+    id 'com.github.kt3k.coveralls' version '2.11.0' // Coverage
+}
+
+sourceCompatibility = 1.8
+
+group 'de.inetsoftware'
+archivesBaseName = 'jwebassembly-compiler'
+version = '0.4'
+
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' } // for snapshot of the API
+}
+
+dependencies {
+    // "compileOnly" will not add as dependency. this is different to "compile". 
+    compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
+    //compileOnly 'de.inetsoftware:jwebassembly-api:+'
+    compileOnly 'com.github.i-net-software:jwebassembly-api:master-SNAPSHOT'
+
+    testImplementation 'com.google.code.findbugs:jsr305:3.0.1'
+    //testCompile 'de.inetsoftware:jwebassembly-api:+'
+    testImplementation 'com.github.i-net-software:jwebassembly-api:master-SNAPSHOT'
+    testImplementation 'junit:junit:+'
+    testImplementation 'org.mockito:mockito-core:+'
+    testImplementation 'org.apache.commons:commons-compress:1.2'
+    testImplementation 'com.google.code.gson:gson:+'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src'
+        }
+        resources {
+            srcDir 'src'
+        }
+    }
+    test {
+        java {
+            srcDir 'test'
+        }
+        resources {
+            srcDir 'test'
+        }
+    }
+}
+
+compileJava.options.encoding = 'UTF-8'
+compileJava.options.compilerArgs += ['-Xlint:all', '-Xlint:-serial', '-Xlint:-fallthrough']
+compileTestJava.options.encoding = 'UTF-8'
+javadoc.options.encoding = 'UTF-8'
+
+jar {
+    manifest {
+        attributes( 'Specification-Title': 'JWebAssembly-Compiler',
+                    'Specification-Vendor': 'i-net software',
+                    'Specification-Version': version,
+                    'Implementation-Title': 'JWebAssembly-Compiler',
+                    'Implementation-Vendor': 'i-net software',
+                    'Implementation-Version': version)
+    }
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.java
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+build {
+    dependsOn sourcesJar
+    dependsOn javadocJar
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+test {
+    systemProperty "file.encoding", "UTF-8"
+    enableAssertions = true
+    testLogging {
+        showStandardStreams = true
+        showStackTraces = true
+        exceptionFormat = 'full'
+        events 'passed', 'skipped', 'failed'
+    }
+}
+
+
+/****************************************
+ * Coverage
+ ****************************************/
+apply plugin: 'jacoco'
+
+jacocoTestReport {
+    tasks.coveralls.dependsOn it
+    reports {
+        xml.enabled = true  // coveralls plugin depends on xml format report
+        html.enabled = true
+    }
+}
+check.dependsOn tasks.coveralls
+
+
+/****************************************
+ * Deploy to Sonatype
+ ****************************************/
+publishing {
+    publications {
+        JWebAssembly(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+            artifactId archivesBaseName
+            pom {
+                name = 'JWebAssembly-Compiler'
+                description = 'A Java to WebAssembly compiler.'
+                url = 'https://github.com/i-net-software/JWebAssembly'
+                developers {
+                    developer {
+                        id = 'Horcrux7'
+                        name = 'Volker Berlin'
+                        email = 'vberlin@inetsoftware.de'
+                        organization = 'i-net software'
+                        organizationUrl = 'https://www.inetsoftware.de'
+                    }
+                }
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git@github.com:i-net-software/JWebAssembly.git'
+                    developerConnection = 'scm:git:git@github.com:i-net-software/JWebAssembly.git'
+                    url = 'https://github.com/i-net-software/JWebAssembly'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            url 'https://oss.sonatype.org/service/local/staging/deploy/maven2'
+            if (project.hasProperty("ossrhUsername") ) {
+                credentials {
+                    username ossrhUsername
+                    password ossrhPassword
+                }
+            }
+        }
+    }
+}
+
+signing {
+    if (project.hasProperty("signing.keyId") ){
+       sign publishing.publications.JWebAssembly
+
+        // does not create sha256 and sha512 checksums
+        System.setProperty('org.gradle.internal.publish.checksums.insecure', 'true' )
+    }
+}
